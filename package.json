@@ -1,7 +1,7 @@
 {
   "name": "s3upload-dai",
   "version": "1.0.0",
-  "description": "high level amazon s3 client. upload files",
+  "description": "high level amazon s3 client to upload files based on S3 node module",
   "main": "lib/index.js",
   "scripts": {
     "test": "mocha"
