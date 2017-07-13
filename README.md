@@ -2,7 +2,7 @@
 
 ## Installation
 
-`npm install s3 --save`
+`npm install s3-upload-resume --save`
 
 ## Features
 
@@ -22,7 +22,7 @@
 ### Create a client
 
 ```js
-var s3 = require('s3');
+var s3 = require('s3-upload-resume');
 
 var client = s3.createClient({
   maxAsyncS3: 20,     // this is the default
@@ -47,7 +47,7 @@ var client = s3.createClient({
 ```js
 var   AWS = require('aws-sdk')
   , awsS3Client = new AWS.S3()
-  , s3 = require('s3upload-dai')
+  , s3 = require('s3-upload-resume')
   ;
 
 var s3Client = s3.createClient({
