@@ -1,6 +1,6 @@
 {
   "name": "s3-upload-resume",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "high level amazon s3 client to upload files based on S3 node module",
   "main": "lib/index.js",
   "scripts": {
