@@ -640,7 +640,7 @@ client.s3.headObject(
 
 ## Testing
 
-`S3_KEY=<valid_s3_key> S3_SECRET=<valid_s3_secret> S3_BUCKET=<valid_s3_bucket> npm test`
+`AWS_ACCESS_KEY_ID=<valid_AWS_ACCESS_KEY_ID> AWS_SECRET_ACCESS_KEY=<valid_AWS_SECRET_ACCESS_KEY> S3_BUCKET=<valid_s3_bucket> npm test`
 
 Tests upload and download large amounts of data to and from S3. The test
 timeout is set to 40 seconds because Internet connectivity waries wildly.

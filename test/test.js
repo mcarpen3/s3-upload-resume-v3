@@ -1,3 +1,6 @@
+const dotenv = require('dotenv');
+const envResult = dotenv.config();
+if (envResult.error) throw envResult.error;
 var s3 = require('../');
 var MultipartETag = require('../lib/multipart_etag');
 var path = require('path');
@@ -26,8 +29,8 @@ var before = global.before;
 
 var s3Bucket = process.env.S3_BUCKET;
 
-if (!s3Bucket || !process.env.S3_KEY || !process.env.S3_SECRET) {
-  console.log("S3_BUCKET, S3_KEY, and S3_SECRET env vars needed to run tests");
+if (!s3Bucket || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+  console.log("S3_BUCKET, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY env vars needed to run tests");
   process.exit(1);
 }
 
@@ -36,8 +39,8 @@ function createClient() {
     multipartUploadThreshold: 15 * 1024 * 1024,
     multipartUploadSize: 5 * 1024 * 1024,
     s3Options: {
-      accessKeyId: process.env.S3_KEY,
-      secretAccessKey: process.env.S3_SECRET,
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       endpoint: process.env.S3_ENDPOINT,
     },
   });

@@ -19,7 +19,7 @@ const s3Client = new s3.Client({
 let upload = s3Client.uploadFile({
     localFile: 'c:/testing/FileGen_39156203.mp4',
     s3Params: {
-        Bucket: process.env.AWS_BUCKET,
+        Bucket: process.env.S3_BUCKET,
         Key: 'FileGen_39156203.mp4'
     }
 });
