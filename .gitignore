@@ -5,3 +5,5 @@ test/\.env
 myTest/\.env
 
 \.env
+
+\.vscode/
