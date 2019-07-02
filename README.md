@@ -49,10 +49,10 @@ var client = s3.createClient({
 ### Create a client from existing AWS.S3 object
 
 ```js
-var AWS = require('aws-sdk');
-var awsS3Client = new AWS.S3(s3Options);
-var s3 = require('s3-upload-resume');
-var options = {
+const AWS = require('aws-sdk');
+const awsS3Client = new AWS.S3(s3Options);
+const s3 = require('s3-upload-resume');
+const options = {
     maxAsync: 20,
     s3RetryCount: 3,
     s3RetryDelay: 1000,
@@ -61,13 +61,13 @@ var options = {
     s3Client: awsS3Client
     // more options available. See API docs below.
 };
-var client = s3.createClient(options);
+const client = s3.createClient(options);
 ```
 
 ### Upload a file to S3
 
 ```js
-var params = {
+const params = {
     localFile: 'some/local/file',
 
     s3Params: {
@@ -77,22 +77,41 @@ var params = {
         // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property
     }
 };
-var uploader = client.uploadFile(params);
+let uploader = client.uploadFile(params);
+
 uploader.on('error', function(err) {
     console.error('unable to upload:', err.stack);
 });
+
 uploader.on('progress', function() {
     console.log('progress', uploader.progressMd5Amount, uploader.progressAmount, uploader.progressTotal);
 });
+
 uploader.on('end', function() {
     console.log('done uploading');
+});
+
+uploader.on('uploading', function(data) {
+    switch (data) {
+        case 'putting':
+            console.log(`Putting ${upload.localFile} to Bucket: '${upload.s3Bucket}', Key: '${upload.s3Key}'`);
+            break;
+        case 'starting':
+            console.log(`Starting new multipart upload from scratch for ${upload.localFile} to Bucket: '${upload.s3Bucket}', Key: '${upload.s3Key}'`);
+            break;
+        case 'resuming':
+            console.log(`Resuming a multipart upload for ${upload.localFile} to Bucket: '${upload.s3Bucket}', Key: '${upload.s3Key}'`);
+            break;
+        default:
+            break;
+    }
 });
 ```
 
 ### Download a file from S3
 
 ```js
-var params = {
+const params = {
     localFile: 'some/local/file',
 
     s3Params: {
@@ -102,13 +121,16 @@ var params = {
         // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getObject-property
     }
 };
-var downloader = client.downloadFile(params);
+let downloader = client.downloadFile(params);
+
 downloader.on('error', function(err) {
     console.error('unable to download:', err.stack);
 });
+
 downloader.on('progress', function() {
     console.log('progress', downloader.progressAmount, downloader.progressTotal);
 });
+
 downloader.on('end', function() {
     console.log('done downloading');
 });
@@ -117,7 +139,7 @@ downloader.on('end', function() {
 ### Sync a directory to S3
 
 ```js
-var params = {
+const params = {
     localDir: 'some/local/dir',
     deleteRemoved: true, // default false, whether to remove s3 objects
     // that have no corresponding local file.
@@ -129,13 +151,17 @@ var params = {
         // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property
     }
 };
-var uploader = client.uploadDir(params);
+
+let uploader = client.uploadDir(params);
+
 uploader.on('error', function(err) {
     console.error('unable to sync:', err.stack);
 });
+
 uploader.on('progress', function() {
     console.log('progress', uploader.progressAmount, uploader.progressTotal);
 });
+
 uploader.on('end', function() {
     console.log('done uploading');
 });
@@ -261,6 +287,10 @@ And these events:
     the same time. `fdSlicer` is an object for which you can call
     `createReadStream(options)`. See the fd-slicer README for more information.
 -   `'fileClosed'` - emitted when `localFile` has been closed.
+-   `'uploading'` - emitted to tell how it is uploading the file.
+    -   `putting` is when it is uploading a file less than multipartUploadThreshold.
+    -   `starting` is when it is starting a multipart upload from scratch.
+    -   `resuming` is when it found an already started multipart upload on the s3 for that same bucket and key, resumes that upload skipping any parts that the md5 of that part up in the cloud matches the md5 of that part to be uploaded.
 
 And these methods:
 
@@ -469,10 +499,10 @@ And these events:
 0.  Start listing all S3 objects for the target `Prefix`. S3 guarantees
     returned objects to be in sorted order.
 1.  Meanwhile, recursively find all files in `localDir`.
-2.  Once all local files are found, we sort them (the same way that S3 sorts).
-3.  Next we iterate over the sorted local file list one at a time, computing
+1.  Once all local files are found, we sort them (the same way that S3 sorts).
+1.  Next we iterate over the sorted local file list one at a time, computing
     MD5 sums.
-4.  Now S3 object listing and MD5 sum computing are happening in parallel. As
+1.  Now S3 object listing and MD5 sum computing are happening in parallel. As
     each operation progresses we compare both sorted lists side-by-side,
     iterating over them one at a time, uploading files whose MD5 sums don't
     match the remote object (or the remote object is missing), and, if
@@ -541,10 +571,10 @@ And these events:
 0.  Start listing all S3 objects for the target `Prefix`. S3 guarantees
     returned objects to be in sorted order.
 1.  Meanwhile, recursively find all files in `localDir`.
-2.  Once all local files are found, we sort them (the same way that S3 sorts).
-3.  Next we iterate over the sorted local file list one at a time, computing
+1.  Once all local files are found, we sort them (the same way that S3 sorts).
+1.  Next we iterate over the sorted local file list one at a time, computing
     MD5 sums.
-4.  Now S3 object listing and MD5 sum computing are happening in parallel. As
+1.  Now S3 object listing and MD5 sum computing are happening in parallel. As
     each operation progresses we compare both sorted lists side-by-side,
     iterating over them one at a time, downloading objects whose MD5 sums don't
     match the local file (or the local file is missing), and, if
