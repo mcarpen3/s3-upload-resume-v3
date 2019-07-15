@@ -7,3 +7,5 @@ myTest/\.env
 \.env
 
 \.vscode/
+
+\myTest\*
