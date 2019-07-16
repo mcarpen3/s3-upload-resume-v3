@@ -94,13 +94,13 @@ uploader.on('end', function() {
 uploader.on('uploading', function(data) {
     switch (data) {
         case 'putting':
-            console.log(`Putting ${upload.localFile} to Bucket: '${upload.s3Bucket}', Key: '${upload.s3Key}'`);
+            console.log(`Putting ${uploader.localFile} to Bucket: '${uploader.s3Bucket}', Key: '${uploader.s3Key}'`);
             break;
         case 'starting':
-            console.log(`Starting new multipart upload from scratch for ${upload.localFile} to Bucket: '${upload.s3Bucket}', Key: '${upload.s3Key}'`);
+            console.log(`Starting new multipart upload from scratch for ${uploader.localFile} to Bucket: '${uploader.s3Bucket}', Key: '${uploader.s3Key}'`);
             break;
         case 'resuming':
-            console.log(`Resuming a multipart upload for ${upload.localFile} to Bucket: '${upload.s3Bucket}', Key: '${upload.s3Key}'`);
+            console.log(`Resuming a multipart upload for ${uploader.localFile} to Bucket: '${uploader.s3Bucket}', Key: '${uploader.s3Key}'`);
             break;
         default:
             break;
