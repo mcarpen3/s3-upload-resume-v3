@@ -9,3 +9,5 @@ myTest/\.env
 \.vscode/
 
 \myTest\*
+
+myTest/
