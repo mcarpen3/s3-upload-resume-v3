@@ -8,6 +8,4 @@ myTest/\.env
 
 \.vscode/
 
-\myTest\*
-
-myTest/
+test/testV3.js
