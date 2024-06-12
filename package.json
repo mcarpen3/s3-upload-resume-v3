@@ -3,6 +3,7 @@
     "version": "0.0.1",
     "description": "Amazon S3 Client with multipart resume for AWS-SDK V3",
     "main": "lib/",
+    "type":"module",
     "scripts": {
         "test": "mocha"
     },
