@@ -26,9 +26,9 @@
 ### Create a client
 
 ```js
-var s3 = require('s3-upload-resume');
+const { createClient } = require('s3-upload-resume-v3');
 
-var client = s3.createClient({
+const client = createClient({
     maxAsyncS3: 20, // this is the default
     s3RetryCount: 3, // this is the default
     s3RetryDelay: 1000, // this is the default
@@ -50,6 +50,7 @@ var client = s3.createClient({
 
 ```js
 const { S3Client } = require('aws-sdk/client-s3');
+const { ConfigServiceClient } = require('aws-sdk/client-config-service')
 const awsS3Client = new S3Client(s3Options);
 const { createClient } = require('s3-upload-resume-v3');
 const options = {
