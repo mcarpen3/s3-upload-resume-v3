@@ -2,7 +2,7 @@
 
 ## Installation
 
-`npm install s3-upload-resume --save`
+`npm install s3-upload-resume-v3 --save`
 
 ## Features
 
@@ -49,9 +49,9 @@ var client = s3.createClient({
 ### Create a client from existing AWS.S3 object
 
 ```js
-const AWS = require('aws-sdk');
-const awsS3Client = new AWS.S3(s3Options);
-const s3 = require('s3-upload-resume');
+const { S3Client } = require('aws-sdk/client-s3');
+const awsS3Client = new S3Client(s3Options);
+const { createClient } = require('s3-upload-resume-v3');
 const options = {
     maxAsync: 20,
     s3RetryCount: 3,
@@ -61,7 +61,7 @@ const options = {
     s3Client: awsS3Client
     // more options available. See API docs below.
 };
-const client = s3.createClient(options);
+const client = createClient(options);
 ```
 
 ### Upload a file to S3
@@ -461,8 +461,8 @@ Syncs an entire directory to S3.
 ```js
 function getS3Params(localFile, stat, callback) {
   // call callback like this:
-  var err = new Error(...); // only if there is an error
-  var s3Params = { // if there is no error
+  const err = new Error(...); // only if there is an error
+  const s3Params = { // if there is no error
     ContentType: getMimeType(localFile), // just an example
   };
   // pass `null` for `s3Params` if you want to skip uploading this file.
@@ -533,8 +533,8 @@ function getS3Params(localFile, s3Object, callback) {
   // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listObjects-property
 
   // call callback like this:
-  var err = new Error(...); // only if there is an error
-  var s3Params = { // if there is no error
+  const err = new Error(...); // only if there is an error
+  const s3Params = { // if there is no error
     VersionId: "abcd", // just an example
   };
   // pass `null` for `s3Params` if you want to skip downloading this object.
@@ -650,14 +650,14 @@ Using the AWS SDK, you can send a HEAD request, which will tell you if a file ex
 See http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#headObject-property
 
 ```js
-var client = require('s3').createClient({
+const client = require('s3').createClient({
     /* options */
 });
-client.s3.headObject(
+client.s3.send(new HeadObjectCommand( 
     {
         Bucket: 's3 bucket name',
         Key: 'some/remote/file'
-    },
+    }),
     function(err, data) {
         if (err) {
             // file does not exist (err.statusCode == 404)
@@ -673,4 +673,4 @@ client.s3.headObject(
 `AWS_ACCESS_KEY_ID=<valid_AWS_ACCESS_KEY_ID> AWS_SECRET_ACCESS_KEY=<valid_AWS_SECRET_ACCESS_KEY> S3_BUCKET=<valid_s3_bucket> npm test`
 
 Tests upload and download large amounts of data to and from S3. The test
-timeout is set to 40 seconds because Internet connectivity waries wildly.
+timeout is set to 40 seconds.
