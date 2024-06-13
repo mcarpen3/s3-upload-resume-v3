@@ -675,3 +675,35 @@ client.s3.send(new HeadObjectCommand(
 
 Tests upload and download large amounts of data to and from S3. The test
 timeout is set to 40 seconds.
+
+> s3-upload-resume-v3@0.0.1 test
+> mocha
+
+
+
+  MultipartETag
+    √ returns unmodified digest
+
+  s3
+    √ get public URL
+    √ uploads (402ms)
+    √ downloads (316ms)
+    √ downloadBuffer (250ms)
+    √ downloadStream (286ms)
+    √ lists objects (237ms)
+    √ copies an object (217ms)
+    √ moves an object (398ms)
+    √ deletes an object (254ms)
+    √ uploads a folder (488ms)
+    √ downloads a folder (456ms)
+    √ uploadDir with deleteRemoved (352ms)
+    √ lists objects (272ms)
+    √ downloadDir with deleteRemoved (258ms)
+    √ upload folder with delete removed handles updates correctly (888ms)
+    √ uploads folder with lots of files (934ms)
+    √ multipart upload (4556ms)
+    √ download file with multipart etag (795ms)
+    √ deletes a folder (567ms)
+
+
+  20 passing (12s)
