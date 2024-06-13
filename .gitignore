@@ -6,4 +6,4 @@ test/\.env
 
 \.vscode/
 
-test/testV3.js
+test/*.csv
