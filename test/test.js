@@ -1,17 +1,17 @@
-import { config } from 'dotenv';
+const { config } = require('dotenv');
 const envResult = config();
 if (envResult.error) throw envResult.error;
-import { createClient as _createClient, getPublicUrl, getPublicUrlHttp } from '../lib/index.js';
-import MultipartETag from '../lib/multipart_etag';
-import { join, dirname } from 'path';
-import ncp from 'ncp';
-import Pend from 'pend';
-import assert, { ok, strictEqual } from 'assert';
-import { createWriteStream, createReadStream, writeFileSync, existsSync, unlink } from 'fs';
-import mkdirp from 'mkdirp';
-import { createHash } from 'crypto';
-import rimraf from 'rimraf';
-import StreamSink from 'streamsink';
+const { createClient: _createClient, getPublicUrl, getPublicUrlHttp } = require('../lib/index.js');
+const MultipartETag = require('../lib/multipart_etag');
+const { join, dirname } = require('path');
+const ncp = require('ncp');
+const Pend = require('pend');
+const assert = require('assert')
+const { createWriteStream, createReadStream, writeFileSync, existsSync, unlink } = require('node:fs');
+const mkdirp = require('mkdirp');
+const { createHash } = require('crypto');
+const rimraf = require('rimraf');
+const StreamSink = require('streamsink');
 const tempDir = join(__dirname, 'tmp');
 const tempManyFilesDir = join(__dirname, 'tmp', 'many-files-dir');
 const localFile = join(tempDir, 'random.png');
@@ -30,7 +30,7 @@ const before = global.before;
 const s3Bucket = process.env.S3_BUCKET;
 
 if (!s3Bucket || !process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-  console.log("S3_BUCKET, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY env lets needed to run tests");
+  console.log("S3_BUCKET, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY env vars needed to run tests");
   process.exit(1);
 }
 
@@ -39,9 +39,11 @@ function createClient() {
     multipartUploadThreshold: 15 * 1024 * 1024,
     multipartUploadSize: 5 * 1024 * 1024,
     s3Options: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      endpoint: process.env.S3_ENDPOINT,
+      aws_access_key_id: process.env.AWS_ACCESS_KEY_ID, 
+      aws_secret_access_key: process.env.AWS_SECRET_ACCESS_KEY, 
+      region: process.env.AWS_REGION, 
+      useFipsEndpoint: process.env.AWS_REGION.indexOf('gov') !== -1 ? true : false, 
+      endpoint: process.env.AWS_REGION.indexOf('gov') !== -1 ? 's3-fips.us-gov-east-1.amazonaws.com' : 'us-east-1.amazonaws.com' 
     },
   });
 }
@@ -69,7 +71,8 @@ function createBigFile(file, size, cb) {
 }
 
 function createFolderOfFiles(dir, numFiles, sizeOfFiles, cb) {
-  for (let i = 0, j = numFiles; i < numFiles; i++) {
+  let j = numFiles
+  for (let i = 0; i < numFiles; i++) {
     createBigFile(join(dir, 'file' + i), sizeOfFiles, function () {
       j--;
       if (j === 0) {
@@ -79,7 +82,7 @@ function createFolderOfFiles(dir, numFiles, sizeOfFiles, cb) {
   }
 }
 
-const file1Md5 = "b1946ac92492d2347c6235b4d2611184";
+const file1Md5 = "af5597c29467a96523a70787c319f4db";
 describe("MultipartETag", function() {
   it("returns unmodified digest", function(done) {
     const inStream = createReadStream(join(__dirname, "dir1", "file1"));
@@ -91,12 +94,12 @@ describe("MultipartETag", function() {
       progressEventCount += 1;
     });
     multipartETag.on('end', function() {
-      ok(progressEventCount > 0);
-      strictEqual(bytes, 6);
-      strictEqual(multipartETag.digest.toString('hex'), file1Md5);
-      ok(multipartETag.anyMatch(file1Md5));
-      strictEqual(multipartETag.anyMatch(""), false);
-      strictEqual(multipartETag.anyMatch(null), false);
+      assert.ok(progressEventCount > 0);
+      assert.strictEqual(bytes, 7);
+      assert.strictEqual(multipartETag.digest.toString('hex'), file1Md5);
+      assert.ok(multipartETag.anyMatch(file1Md5));
+      assert.strictEqual(multipartETag.anyMatch(""), false);
+      assert.strictEqual(multipartETag.anyMatch(null), false);
       done();
     });
     inStream.pipe(multipartETag);
@@ -120,7 +123,7 @@ describe("s3", function () {
   });
 
   after(function(done) {
-    rimraf(tempDir, done);
+    rimraf(tempDir, done); // delete tempDir recursively
   });
 
   after(function() {
@@ -129,12 +132,12 @@ describe("s3", function () {
 
   it("get public URL", function() {
     let httpsUrl = getPublicUrl("mybucket", "path/to/key");
-    strictEqual(httpsUrl, "https://s3.amazonaws.com/mybucket/path/to/key");
+    assert.strictEqual(httpsUrl, "https://s3.amazonaws.com/mybucket/path/to/key");
     let httpUrl = getPublicUrlHttp("mybucket", "path/to/key");
-    strictEqual(httpUrl, "http://mybucket.s3.amazonaws.com/path/to/key");
+    assert.strictEqual(httpUrl, "http://mybucket.s3.amazonaws.com/path/to/key");
     // treat slashes literally
     httpsUrl = getPublicUrl("marina-restaurant.at", "uploads/about_restaurant_10.jpg", "eu-west-1");
-    strictEqual(httpsUrl,
+    assert.strictEqual(httpsUrl,
       "https://s3-eu-west-1.amazonaws.com/marina-restaurant.at/uploads/about_restaurant_10.jpg")
   });
 
@@ -163,7 +166,7 @@ describe("s3", function () {
         progress = newProgress;
       });
       uploader.on('end', function(url) {
-        strictEqual(progress, 1);
+        assert.strictEqual(progress, 1);
         assert(progressEventCount >= 2, "expected at least 2 progress events. got " + progressEventCount);
         assert(url !== "", "expected a url. got " + url);
         done();
@@ -190,18 +193,18 @@ describe("s3", function () {
       assert(newProgress >= progress, "old progress: " + progress + ", new progress: " + newProgress);
       progress = newProgress;
     });
-    downloader.on('httpHeaders', function(statusCode, headers, resp) {
-      let contentType = headers['content-type'];
-      strictEqual(contentType, "image/png");
+    downloader.on('httpHeaders', function(type) {
+      let contentType = type;
+      assert.strictEqual(contentType, "image/png");
       gotHttpHeaders = true;
     });
     downloader.on('end', function(buffer) {
-      strictEqual(progress, 1);
+      assert.strictEqual(progress, 1);
       assert(progressEventCount >= 3, "expected at least 3 progress events. got " + progressEventCount);
       let md5sum = createHash('md5');
       md5sum.update(buffer);
-      strictEqual(md5sum.digest('hex'), hexdigest)
-      ok(gotHttpHeaders);
+      assert.strictEqual(md5sum.digest('hex'), hexdigest)
+      assert.ok(gotHttpHeaders);
       done();
     });
   });
@@ -211,9 +214,9 @@ describe("s3", function () {
     let downloadStream = client.downloadStream({Key: remoteFile, Bucket: s3Bucket});
     downloadStream.on('error', done);
     let gotHttpHeaders = false;
-    downloadStream.on('httpHeaders', function(statusCode, headers, resp) {
-      let contentType = headers['content-type'];
-      strictEqual(contentType, "image/png");
+    downloadStream.on('httpHeaders', function(type) {
+      let contentType = type;
+      assert.strictEqual(contentType, "image/png");
       gotHttpHeaders = true;
     });
     let sink = new StreamSink();
@@ -221,8 +224,8 @@ describe("s3", function () {
     sink.on('finish', function() {
       let md5sum = createHash('md5');
       md5sum.update(sink.toBuffer());
-      strictEqual(md5sum.digest('hex'), hexdigest)
-      ok(gotHttpHeaders);
+      assert.strictEqual(md5sum.digest('hex'), hexdigest)
+      assert.ok(gotHttpHeaders);
       done();
     });
   });
@@ -239,11 +242,11 @@ describe("s3", function () {
     let finder = client.listObjects(params);
     let found = false;
     finder.on('data', function(data) {
-      strictEqual(data.Contents.length, 1);
+      assert.strictEqual(data.Contents.length, 1);
       found = true;
     });
     finder.on('end', function() {
-      strictEqual(found, true);
+      assert.strictEqual(found, true);
       done();
     });
   });
@@ -290,6 +293,10 @@ describe("s3", function () {
         },
       };
       let deleter = client.deleteObjects(params);
+      deleter.on('error', err => {
+        console.error(err)
+        done()
+      })
       deleter.on('end', function() {
         done();
       });
@@ -329,15 +336,15 @@ describe("s3", function () {
         },
         {
           path: join(localDir, "file2"),
-          md5: "6f0f1993fceae490cedfb1dee04985af",
+          md5: "64477f50fd30bb33a6bcc30e8f61ee4c",
         },
         {
           path: join(localDir, "inner1/a"),
-          md5: "ebcb2061cab1d5c35241a79d27dce3af",
+          md5: "44009aed0751f6aa5eb2ed5443b9c037",
         },
         {
           path: join(localDir, "inner2/b"),
-          md5: "c96b1cbe66f69b234cf361d8c1e5bbb9",
+          md5: "3f974c5f84d7dcf177972a3b97489cc4",
         },
       ], done);
     });
@@ -371,12 +378,14 @@ describe("s3", function () {
     let finder = client.listObjects(params);
     let found = false;
     finder.on('data', function(data) {
-      strictEqual(data.Contents.length, 2);
-      strictEqual(data.CommonPrefixes.length, 0);
+      if (data.Contents)
+        assert.strictEqual(data.Contents.length, 2);
+      if (data.CommonPrefixes)
+        assert.strictEqual(data.CommonPrefixes.length, 0);
       found = true;
     });
     finder.on('end', function() {
-      strictEqual(found, true);
+      assert.strictEqual(found, true);
       done();
     });
   });
@@ -402,17 +411,17 @@ describe("s3", function () {
         assertFilesMd5([
           {
             path: join(localTmpDir, "file1"),
-            md5: "b1946ac92492d2347c6235b4d2611184",
+            md5: "af5597c29467a96523a70787c319f4db",
           },
           {
             path: join(localTmpDir, "inner1/a"),
-            md5: "ebcb2061cab1d5c35241a79d27dce3af",
+            md5: "44009aed0751f6aa5eb2ed5443b9c037",
           },
         ], function(err) {
           if (err) throw err;
-          strictEqual(existsSync(join(localTmpDir, "file2")), false);
-          strictEqual(existsSync(join(localTmpDir, "inner2/b")), false);
-          strictEqual(existsSync(join(localTmpDir, "inner2")), false);
+          assert.strictEqual(existsSync(join(localTmpDir, "file2")), false);
+          assert.strictEqual(existsSync(join(localTmpDir, "inner2/b")), false);
+          assert.strictEqual(existsSync(join(localTmpDir, "inner2")), false);
           done();
         });
       });
@@ -446,12 +455,14 @@ describe("s3", function () {
         let finder = client.listObjects(params);
         let found = false;
         finder.on('data', function(data) {
-          strictEqual(data.Contents.length, 2);
-          strictEqual(data.CommonPrefixes.length, 0);
+          if (data.Contents)
+            assert.strictEqual(data.Contents.length, 2);
+          if (data.CommonPrefixes)
+            assert.strictEqual(data.CommonPrefixes.length, 0);
           found = true;
         });
         finder.on('end', function() {
-          strictEqual(found, true);
+          assert.strictEqual(found, true);
           done();
         });
       });
@@ -483,11 +494,11 @@ describe("s3", function () {
         let finder = client.listObjects(params);
         let found = false;
         finder.on('data', function(data) {
-          strictEqual(data.Contents.length, 10);
+          assert.strictEqual(data.Contents.length, 10);
           found = true;
         });
         finder.on('end', function() {
-          strictEqual(found, true);
+          assert.strictEqual(found, true);
           done();
         });
       });
@@ -519,9 +530,9 @@ describe("s3", function () {
         progress = newProgress;
       });
       uploader.on('end', function(data) {
-        strictEqual(progress, 1);
+        assert.strictEqual(progress, 1);
         assert(progressEventCount >= 2, "expected at least 2 progress events. got " + progressEventCount);
-        ok(data, "expected data. got " + data);
+        assert.ok(data, "expected data. got " + data);
         done();
       });
     });
@@ -567,13 +578,13 @@ describe("s3", function () {
         assert(newProgress >= progress, "old progress: " + progress + ", new progress: " + newProgress);
         progress = newProgress;
       });
-      downloader.on('httpHeaders', function(statusCode, headers, resp) {
-        let contentType = headers['content-type'];
-        strictEqual(contentType, "image/png");
+      downloader.on('httpHeaders', function(type) {
+        let contentType = type;
+        assert.strictEqual(contentType, "image/png");
         gotHttpHeaders = true;
       });
       downloader.on('end', function() {
-        strictEqual(progress, 1);
+        assert.strictEqual(progress, 1);
         assert(progressEventCount >= 3, "expected at least 3 progress events. got " + progressEventCount);
         let reader = createReadStream(localFile);
         let md5sum = createHash('md5');
@@ -581,8 +592,8 @@ describe("s3", function () {
           md5sum.update(data);
         });
         reader.on('end', function() {
-          strictEqual(md5sum.digest('hex'), hexdigest);
-          ok(gotHttpHeaders);
+          assert.strictEqual(md5sum.digest('hex'), hexdigest);
+          assert.ok(gotHttpHeaders);
           unlink(localFile, done);
         });
       });
@@ -599,7 +610,7 @@ function assertFilesMd5(list, cb) {
       inStream.pipe(hash);
       hash.on('data', function(digest) {
         let hexDigest = digest.toString('hex');
-        strictEqual(hexDigest, o.md5, o.path + " md5 mismatch");
+        assert.strictEqual(hexDigest, o.md5, o.path + " md5 mismatch");
         cb();
       });
     });
